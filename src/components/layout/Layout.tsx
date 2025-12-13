@@ -14,9 +14,9 @@ export function Layout() {
                 </div>
                 <footer className="mt-12 flex flex-col items-center gap-4 text-center text-xs text-muted-foreground/60">
                     <div className="flex items-center gap-4">
-                        <a href="#" className="hover:text-foreground transition-colors">GitHub</a>
+                        <a href="https://github.com/MuhammadHabibna" className="hover:text-foreground transition-colors">GitHub</a>
                         <span className="text-muted-foreground/20">•</span>
-                        <a href="#" className="hover:text-foreground transition-colors">TikTok</a>
+                        <a href="https://tiktok.com/@muhammadhabibna" className="hover:text-foreground transition-colors">TikTok</a>
                     </div>
                     <p>&copy; {new Date().getFullYear()} TikData Lite. All rights reserved.</p>
                 </footer>

@@ -16,7 +16,7 @@ export function PasswordModal({ isOpen, onOpenChange, onSuccess }: PasswordModal
 
     // Using the user-provided PIN
     const CORRECT_PIN = "050597"
-    const CONTACT_LINK = "#" // Placeholder as discussed, user to update
+    const CONTACT_LINK = "http://lynk.id/habib.creations/6w31og8jmmvr" // Placeholder as discussed, user to update
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
