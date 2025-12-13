@@ -10,7 +10,7 @@ interface ScraperFormProps {
 }
 
 // TOGGLE THIS TO DISABLE/ENABLE PIN PROTECTION
-const ENABLE_PIN_PROTECTION = true
+const ENABLE_PIN_PROTECTION = false
 
 export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
     const [urls, setUrls] = useState<string[]>([""])
