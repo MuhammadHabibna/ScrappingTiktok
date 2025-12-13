@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 240 10% 4%;
+    --radius: 0.75rem;
+
+    /* TikTok Brand Colors */
+    --tiktok-cyan: 178 100% 47%;
+    --tiktok-pink: 341 100% 50%;
+  }
+
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary;
+    font-family: 'Inter', sans-serif;
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08), transparent 25%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl border border-white/5 shadow-xl;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Custom TikTok Utilities */
+  .text-tiktok-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--tiktok-cyan))] to-[hsl(var(--tiktok-pink))];
+  }
+
+  .bg-tiktok-gradient {
+    @apply bg-gradient-to-r from-[hsl(var(--tiktok-cyan))] to-[hsl(var(--tiktok-pink))];
+  }
+
+  .border-tiktok-cyan {
+    @apply border-[hsl(var(--tiktok-cyan))];
+  }
+
+  .border-tiktok-pink {
+    @apply border-[hsl(var(--tiktok-pink))];
+  }
+
+  .shadow-tiktok-cyan {
+    @apply shadow-[hsl(var(--tiktok-cyan))];
+  }
+
+  .shadow-tiktok-pink {
+    @apply shadow-[hsl(var(--tiktok-pink))];
+  }
+}
