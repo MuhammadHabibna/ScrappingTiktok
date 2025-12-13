@@ -2,16 +2,21 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Loader2, Plus, Trash2, Video, MessageCircle } from "lucide-react"
+import { PasswordModal } from "./PasswordModal"
 
 interface ScraperFormProps {
     onScrape: (urls: string[], count: number, repliesCount: number) => void
     loading: boolean
 }
 
+// TOGGLE THIS TO DISABLE/ENABLE PIN PROTECTION
+const ENABLE_PIN_PROTECTION = true
+
 export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
     const [urls, setUrls] = useState<string[]>([""])
     const [count, setCount] = useState(100)
     const [repliesCount, setRepliesCount] = useState(0)
+    const [showPasswordModal, setShowPasswordModal] = useState(false)
 
     const handleUrlChange = (index: number, value: string) => {
         const newUrls = [...urls]
@@ -30,8 +35,19 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
         }
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+        const validUrls = urls.filter(u => u.trim().length > 0)
+        if (validUrls.length > 0) {
+            if (ENABLE_PIN_PROTECTION) {
+                setShowPasswordModal(true)
+            } else {
+                onScrape(validUrls, count, repliesCount)
+            }
+        }
+    }
+
+    const handleScrapeStart = () => {
         const validUrls = urls.filter(u => u.trim().length > 0)
         if (validUrls.length > 0) onScrape(validUrls, count, repliesCount)
     }
@@ -48,7 +64,7 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
                 </span>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-6">
                 <div className="space-y-3">
                     {urls.map((url, index) => (
                         <div key={index} className="flex gap-3 group">
@@ -132,6 +148,12 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
                     {loading ? "Initializing Scraper Agent..." : "Start Scraping Analysis"}
                 </Button>
             </form>
+
+            <PasswordModal
+                isOpen={showPasswordModal}
+                onOpenChange={setShowPasswordModal}
+                onSuccess={handleScrapeStart}
+            />
         </div>
     )
 }

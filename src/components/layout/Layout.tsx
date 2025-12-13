@@ -8,8 +8,18 @@ export function Layout() {
     return (
         <div className="flex min-h-screen bg-transparent text-foreground font-sans antialiased selection:bg-primary/20">
             <Sidebar />
-            <main className="flex-1 p-6 lg:p-10 overflow-auto transition-all duration-300 ease-in-out">
-                <Outlet />
+            <main className="flex-1 p-6 lg:p-10 overflow-auto transition-all duration-300 ease-in-out flex flex-col">
+                <div className="flex-1">
+                    <Outlet />
+                </div>
+                <footer className="mt-12 flex flex-col items-center gap-4 text-center text-xs text-muted-foreground/60">
+                    <div className="flex items-center gap-4">
+                        <a href="#" className="hover:text-foreground transition-colors">GitHub</a>
+                        <span className="text-muted-foreground/20">•</span>
+                        <a href="#" className="hover:text-foreground transition-colors">TikTok</a>
+                    </div>
+                    <p>&copy; {new Date().getFullYear()} TikData Lite. All rights reserved.</p>
+                </footer>
             </main>
         </div>
     )
