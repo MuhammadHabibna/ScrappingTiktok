@@ -75,15 +75,19 @@ export function useScraper() {
             if (discoveryOptions) {
                 const { keyword, startDate, endDate } = discoveryOptions;
                 // Construct Google Dorking Query
+                // WRAP KEYWORD IN QUOTES to ensure exact phrase match for multi-word queries.
                 const query = `site:tiktok.com "${keyword}" after:${startDate} before:${endDate}`;
 
                 setState({ loading: true, progress: `Phase 1/3: Indexing videos for "${keyword}"...`, data: [], error: null, runId: null });
 
                 // Construct Input Payload
                 const input = {
-                    "queries": query, // STRICTLY STRING
+                    "queries": query,
                     "maxPagesPerQuery": 1,
-                    "resultsPerPage": 100, // Limit to 100 as requested
+                    "resultsPerPage": 100,
+                    "languageCode": "id",
+                    "countryCode": "id",
+                    "mobileResults": false,
                     "saveHtml": false,
                     "saveHtmlToKeyValueStore": false,
                     "includeUnfilteredResults": false
