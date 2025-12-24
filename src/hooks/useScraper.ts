@@ -73,29 +73,38 @@ export function useScraper() {
         try {
             // STEP 1: DISCOVERY (If applicable)
             if (discoveryOptions) {
-                const { keyword, startDate, endDate } = discoveryOptions;
-                // Construct Google Dorking Query
-                // STRICT INDONESIAN FILTER:
-                // 1. site:tiktok.com/*/video/* limits to actual video pages
-                // 2. lang:id forces pages indexed as Indonesian
-                // 3. quotes around keyword for exact phrase match
-                const query = `site:tiktok.com/*/video/* "${keyword}" lang:id after:${startDate} before:${endDate}`;
+                const { keyword, startDate, endDate, disableRegionFilter } = discoveryOptions;
+
+                // Optimized Query: Removed /*/video/* as requested for broader discovery
+                // If region filter is strict (default), we still add lang:id to query for better pre-filtering
+                // If disabled, we rely on keyword only.
+                const queryBase = `site:tiktok.com "${keyword}" after:${startDate} before:${endDate}`;
+                const query = disableRegionFilter ? queryBase : `${queryBase} lang:id`;
 
                 setState({ loading: true, progress: `Phase 1/3: Indexing videos for "${keyword}"...`, data: [], error: null, runId: null });
 
                 // Construct Input Payload
-                const input = {
+                // Base payload
+                const input: any = {
                     "queries": query,
                     "maxPagesPerQuery": 1,
                     "resultsPerPage": 100,
-                    "languageCode": "id",
-                    "countryCode": "id",
-                    "googleHost": "google.co.id", // Force Google Indonesia
                     "mobileResults": false,
                     "saveHtml": false,
                     "saveHtmlToKeyValueStore": false,
                     "includeUnfilteredResults": false
                 };
+
+                // Add Region Locks if filter is NOT disabled
+                if (!disableRegionFilter) {
+                    input["languageCode"] = "id";
+                    input["countryCode"] = "id";
+                    input["googleHost"] = "google.co.id";
+                }
+
+                // Final Query Log
+                console.log("FINAL QUERY:", input.queries);
+                console.log("FULL PAYLOAD:", input);
 
                 // Debug Log
                 console.log("Adding Google Scraper Task with Payload:", input);
@@ -217,7 +226,10 @@ export function useScraper() {
                 }))
                 .filter((comment: CommentData) => {
                     // Filter 1: Language Validation (Strict Indonesian Check)
-                    if (!isIndonesian(comment.text)) return false;
+                    // Skip if global mode (disableRegionFilter is true)
+                    if (discoveryOptions && !discoveryOptions.disableRegionFilter) {
+                        if (!isIndonesian(comment.text)) return false;
+                    }
 
                     // Filter 2: Date Validation (Double check strict range)
                     if (discoveryOptions) {

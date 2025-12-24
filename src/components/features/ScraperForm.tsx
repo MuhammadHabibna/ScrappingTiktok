@@ -8,6 +8,7 @@ export interface DiscoveryOptions {
     keyword: string
     startDate: string
     endDate: string
+    disableRegionFilter?: boolean
 }
 
 interface ScraperFormProps {
@@ -29,6 +30,8 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
     const [keyword, setKeyword] = useState("")
     const [selectedStartDate, setSelectedStartDate] = useState("")
     const [selectedEndDate, setSelectedEndDate] = useState("")
+    // New State for Region Filter
+    const [disableRegionFilter, setDisableRegionFilter] = useState(false)
 
     // Common State
     const [count, setCount] = useState(100)
@@ -79,7 +82,8 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
             onScrape([], count, repliesCount, {
                 keyword,
                 startDate: selectedStartDate,
-                endDate: selectedEndDate
+                endDate: selectedEndDate,
+                disableRegionFilter // Pass the toggle state
             })
         }
     }
@@ -200,12 +204,29 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
                                 <Globe size={10} className="inline mr-1" />
                                 System will use Google Dorking to find videos posted between <strong>{selectedStartDate || '...'}</strong> and <strong>{selectedEndDate || '...'}</strong>.
                             </p>
-                            <div className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-red-500 w-fit">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                                </span>
-                                Search Region: <strong>Indonesia 🇮🇩</strong>
+
+                            {/* Region Filter Toggle */}
+                            <div
+                                onClick={() => setDisableRegionFilter(!disableRegionFilter)}
+                                className={`flex items-center gap-2 px-2 py-1 border rounded text-[10px] w-fit cursor-pointer select-none transition-all ${disableRegionFilter
+                                        ? 'bg-slate-500/10 border-slate-500/20 text-slate-500'
+                                        : 'bg-red-500/10 border-red-500/20 text-red-500'
+                                    }`}
+                            >
+                                {disableRegionFilter ? (
+                                    <>
+                                        <Globe size={10} />
+                                        <span>Region: <strong>Global (All Languages)</strong></span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                        </span>
+                                        <span>Search Region: <strong>Indonesia 🇮🇩</strong></span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
