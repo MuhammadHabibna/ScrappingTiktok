@@ -7,11 +7,28 @@ Aplikasi ini dibangun menggunakan teknologi web terkini seperti **React (Vite)**
 ## 🚀 Fitur Utama
 
 -   **Modern UI/UX**: Desain antarmuka "Cyber/TikTok" yang menarik dengan efek neon dan glassmorphism.
+-   **Monthly Discovery (New!)**: Temukan dan scrape video TikTok berdasarkan kata kunci dan rentang tanggal spesifik menggunakan integrasi Google Dorking.
 -   **Multi-Video Analysis**: Scraping komentar dari beberapa URL video TikTok sekaligus.
 -   **Deep Insights**: Menampilkan total komentar, engagement (likes), dan jumlah user unik.
 -   **CSV Export**: Fitur export data hasil scrapping ke format CSV yang rapi.
 -   **Responsive**: Tampilan optimal di desktop maupun perangkat mobile.
 -   **Secure**: API Key tersimpan secara lokal di browser (Local Storage) dan tidak pernah dikirim ke server kami.
+
+---
+
+## 🔍 Fitur Monthly Discovery (Baru)
+
+Fitur ini memungkinkan Anda untuk mencari konten TikTok tanpa perlu memiliki URL video secara manual.
+
+1.  **Pilih Mode**: Klik tombol "Monthly Discovery" di form pencarian.
+2.  **Masukkan Keyword**: Ketik topik yang ingin dicari (contoh: "Skincare Review", "Pemilu 2024").
+3.  **Tentukan Tanggal**: Pilih **Start Date** dan **End Date** untuk memfilter hasil pencarian.
+4.  **Mulai Scraping**: Sistem akan otomatis:
+    -   Mencari video relevan via Google (Google Dorking).
+    -   Mengambil URL video yang ditemukan.
+    -   Melakukan scraping komentar secara otomatis.
+
+> **Teknologi**: Fitur ini menggunakan teknik *API Chaining*, menghubungkan `Google Search Scraper` dengan `TikTok Comments Scraper` dalam satu alur kerja otomatis.
 
 ---
 
