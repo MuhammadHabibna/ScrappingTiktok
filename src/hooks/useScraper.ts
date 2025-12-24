@@ -75,8 +75,11 @@ export function useScraper() {
             if (discoveryOptions) {
                 const { keyword, startDate, endDate } = discoveryOptions;
                 // Construct Google Dorking Query
-                // WRAP KEYWORD IN QUOTES to ensure exact phrase match for multi-word queries.
-                const query = `site:tiktok.com "${keyword}" after:${startDate} before:${endDate}`;
+                // STRICT INDONESIAN FILTER:
+                // 1. site:tiktok.com/*/video/* limits to actual video pages
+                // 2. lang:id forces pages indexed as Indonesian
+                // 3. quotes around keyword for exact phrase match
+                const query = `site:tiktok.com/*/video/* "${keyword}" lang:id after:${startDate} before:${endDate}`;
 
                 setState({ loading: true, progress: `Phase 1/3: Indexing videos for "${keyword}"...`, data: [], error: null, runId: null });
 
@@ -87,6 +90,7 @@ export function useScraper() {
                     "resultsPerPage": 100,
                     "languageCode": "id",
                     "countryCode": "id",
+                    "googleHost": "google.co.id", // Force Google Indonesia
                     "mobileResults": false,
                     "saveHtml": false,
                     "saveHtmlToKeyValueStore": false,
@@ -190,17 +194,41 @@ export function useScraper() {
             const itemsResponse = await fetch(`https://api.apify.com/v2/datasets/${defaultDatasetId}/items?token=${apiKey}`);
             const items = await itemsResponse.json();
 
-            const mappedData: CommentData[] = items.map((item: Record<string, any>) => ({
-                text: item.text,
-                authorName: item.authorName,
-                authorUniqueId: item.authorUniqueId,
-                createTime: item.createTime,
-                likes: item.diggCount,
-                replies: item.replyCount,
-                url: item.videoWebUrl,
-                videoTitle: item.videoTitle || item.desc || "Unknown Video",
-                videoCover: item.videoCover || item.videoAuthorAvatar
-            }));
+            // POST-SCRAPE VALIDATION
+            const indonesianStopWords = ["yang", "dan", "di", "ini", "ada", "ke", "dari", "untuk", "pada", "adalah", "aku", "kamu", "dia", "mereka", "kita", "bisa", "mau", "tidak", "ya", "nggak", "gak", "banget", "dong", "sih", "kok", "apa", "kenapa", "kapan", "dimana", "siapa", "bagaimana", "hal", "juga", "itu", "saya", "tapi", "akan", "sudah", "lebih", "ia", "oleh"];
+
+            const isIndonesian = (text: string) => {
+                const lowerText = text.toLowerCase();
+                // Check if text contains at least one common Indonesian stop word
+                return indonesianStopWords.some(word => lowerText.includes(` ${word} `) || lowerText.startsWith(`${word} `) || lowerText.endsWith(` ${word}`) || lowerText === word);
+            };
+
+            const mappedData: CommentData[] = items
+                .map((item: Record<string, any>) => ({
+                    text: item.text,
+                    authorName: item.authorName,
+                    authorUniqueId: item.authorUniqueId,
+                    createTime: item.createTime, // Unix timestamp in seconds
+                    likes: item.diggCount,
+                    replies: item.replyCount,
+                    url: item.videoWebUrl,
+                    videoTitle: item.videoTitle || item.desc || "Unknown Video",
+                    videoCover: item.videoCover || item.videoAuthorAvatar
+                }))
+                .filter((comment: CommentData) => {
+                    // Filter 1: Language Validation (Strict Indonesian Check)
+                    if (!isIndonesian(comment.text)) return false;
+
+                    // Filter 2: Date Validation (Double check strict range)
+                    if (discoveryOptions) {
+                        const commentDate = new Date(comment.createTime * 1000);
+                        const start = new Date(discoveryOptions.startDate);
+                        const end = new Date(discoveryOptions.endDate);
+                        end.setHours(23, 59, 59); // Ensure end date covers the full day
+                        return commentDate >= start && commentDate <= end;
+                    }
+                    return true;
+                });
 
             setState({
                 loading: false,
