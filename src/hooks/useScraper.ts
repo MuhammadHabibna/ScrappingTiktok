@@ -74,22 +74,29 @@ export function useScraper() {
             // STEP 1: DISCOVERY (If applicable)
             if (discoveryOptions) {
                 const { keyword, startDate, endDate } = discoveryOptions;
+                // Construct Google Dorking Query
                 const query = `site:tiktok.com "${keyword}" after:${startDate} before:${endDate}`;
 
                 setState({ loading: true, progress: `Phase 1/3: Indexing videos for "${keyword}"...`, data: [], error: null, runId: null });
+
+                // Construct Input Payload
+                const input = {
+                    "queries": query, // STRICTLY STRING
+                    "maxPagesPerQuery": 1,
+                    "resultsPerPage": 100, // Limit to 100 as requested
+                    "saveHtml": false,
+                    "saveHtmlToKeyValueStore": false,
+                    "includeUnfilteredResults": false
+                };
+
+                // Debug Log
+                console.log("Adding Google Scraper Task with Payload:", input);
 
                 // Start Google Scraper
                 const googleRunResponse = await fetch(`https://api.apify.com/v2/acts/apify~google-search-scraper/runs?token=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        queries: [query],
-                        maxPagesPerQuery: 1,
-                        resultsPerPage: 100, // Limit to 100 as requested
-                        saveHtml: false,
-                        saveHtmlToKeyValueStore: false,
-                        includeUnfilteredResults: false
-                    })
+                    body: JSON.stringify(input)
                 });
 
                 if (!googleRunResponse.ok) {
