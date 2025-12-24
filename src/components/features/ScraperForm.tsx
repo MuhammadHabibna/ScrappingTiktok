@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Loader2, Plus, Trash2, Video, MessageCircle, Globe, Calendar } from "lucide-react"
 import { PasswordModal } from "./PasswordModal"
-import { getMonthDateRange, getYearsArray, MONTH_NAMES } from "@/lib/dateUtils"
 
 export interface DiscoveryOptions {
     keyword: string
@@ -28,8 +27,8 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
 
     // Discovery Mode State
     const [keyword, setKeyword] = useState("")
-    const [selectedMonth, setSelectedMonth] = useState<string>(String(new Date().getMonth()))
-    const [selectedYear, setSelectedYear] = useState<string>(String(new Date().getFullYear()))
+    const [selectedStartDate, setSelectedStartDate] = useState("")
+    const [selectedEndDate, setSelectedEndDate] = useState("")
 
     // Common State
     const [count, setCount] = useState(100)
@@ -77,11 +76,10 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
             if (validUrls.length > 0) onScrape(validUrls, count, repliesCount)
         } else {
             // Discovery Mode
-            const { startDate, endDate } = getMonthDateRange(Number(selectedYear), Number(selectedMonth))
             onScrape([], count, repliesCount, {
                 keyword,
-                startDate,
-                endDate
+                startDate: selectedStartDate,
+                endDate: selectedEndDate
             })
         }
     }
@@ -174,50 +172,32 @@ export function ScraperForm({ onScrape, loading }: ScraperFormProps) {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2">
-                                    <Calendar size={12} /> Month
+                                    <Calendar size={12} /> Start Date
                                 </label>
-                                <div className="relative">
-                                    <select
-                                        value={selectedMonth}
-                                        onChange={(e) => setSelectedMonth(e.target.value)}
-                                        className="w-full h-10 px-3 bg-background/50 border border-input rounded-md text-sm focus:border-tiktok-pink focus:ring-1 focus:ring-tiktok-pink appearance-none cursor-pointer"
-                                    >
-                                        {MONTH_NAMES.map((month, index) => (
-                                            <option key={index} value={String(index)} className="bg-background text-foreground">
-                                                {month}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-                                    </div>
-                                </div>
+                                <Input
+                                    type="date"
+                                    value={selectedStartDate}
+                                    onChange={(e) => setSelectedStartDate(e.target.value)}
+                                    className="bg-background/50 border-input focus:border-tiktok-pink focus:ring-1 focus:ring-tiktok-pink"
+                                    required
+                                />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2">
-                                    <Calendar size={12} /> Year
+                                    <Calendar size={12} /> End Date
                                 </label>
-                                <div className="relative">
-                                    <select
-                                        value={selectedYear}
-                                        onChange={(e) => setSelectedYear(e.target.value)}
-                                        className="w-full h-10 px-3 bg-background/50 border border-input rounded-md text-sm focus:border-tiktok-pink focus:ring-1 focus:ring-tiktok-pink appearance-none cursor-pointer"
-                                    >
-                                        {getYearsArray().map((year) => (
-                                            <option key={year} value={String(year)} className="bg-background text-foreground">
-                                                {year}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-                                    </div>
-                                </div>
+                                <Input
+                                    type="date"
+                                    value={selectedEndDate}
+                                    onChange={(e) => setSelectedEndDate(e.target.value)}
+                                    className="bg-background/50 border-input focus:border-tiktok-pink focus:ring-1 focus:ring-tiktok-pink"
+                                    required
+                                />
                             </div>
                         </div>
                         <p className="text-[10px] text-muted-foreground bg-blue-500/10 p-2 rounded border border-blue-500/20">
                             <Globe size={10} className="inline mr-1" />
-                            System will use Google Dorking to find videos posted between <strong>{MONTH_NAMES[Number(selectedMonth)]} {selectedYear}</strong>.
+                            System will use Google Dorking to find videos posted between <strong>{selectedStartDate || '...'}</strong> and <strong>{selectedEndDate || '...'}</strong>.
                         </p>
                     </div>
                 )}

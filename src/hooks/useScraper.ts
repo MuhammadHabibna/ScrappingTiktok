@@ -92,7 +92,16 @@ export function useScraper() {
                     })
                 });
 
-                if (!googleRunResponse.ok) throw new Error("Failed to start Google Discovery Agent");
+                if (!googleRunResponse.ok) {
+                    let details = "";
+                    try {
+                        const errData = await googleRunResponse.json();
+                        details = errData.error?.message || JSON.stringify(errData);
+                    } catch (e) {
+                        details = "No details available.";
+                    }
+                    throw new Error(`Failed to start Google Discovery Agent (${googleRunResponse.status} ${googleRunResponse.statusText}): ${details}`);
+                }
 
                 const googleRunData = await googleRunResponse.json();
                 const googleRunId = googleRunData.data.id;
