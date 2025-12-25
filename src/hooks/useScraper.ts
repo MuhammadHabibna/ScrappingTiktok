@@ -68,6 +68,15 @@ export function useScraper() {
             return;
         }
 
+        // TASK 1: Mandatory State Reset - Clear existing data immediately
+        setState(prev => ({
+            ...prev,
+            loading: true,
+            data: [],
+            error: null,
+            progress: 'Starting...'
+        }));
+
         let targetUrls = initialUrls;
 
         try {
@@ -75,13 +84,17 @@ export function useScraper() {
             if (discoveryOptions) {
                 const { keyword, startDate, endDate, disableRegionFilter } = discoveryOptions;
 
-                // Optimized Query: Removed /*/video/* as requested for broader discovery
-                // If region filter is strict (default), we still add lang:id to query for better pre-filtering
-                // If disabled, we rely on keyword only.
-                const queryBase = `site:tiktok.com "${keyword}" after:${startDate} before:${endDate}`;
-                const query = disableRegionFilter ? queryBase : `${queryBase} lang:id`;
+                // Task 2: Dynamic Query Verification - EXCLUSIVELY use targetKeyword
+                const query = `site:tiktok.com "${keyword}" after:${startDate} before:${endDate}`;
 
-                setState({ loading: true, progress: `Phase 1/3: Indexing videos for "${keyword}"...`, data: [], error: null, runId: null });
+                // Task 3: Detailed UI Feedback
+                setState({
+                    loading: true,
+                    progress: `Searching Google for: ${keyword}...`,
+                    data: [],
+                    error: null,
+                    runId: null
+                });
 
                 // Construct Input Payload
                 // Base payload
