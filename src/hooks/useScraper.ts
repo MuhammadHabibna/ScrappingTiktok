@@ -44,7 +44,8 @@ export function useScraper() {
             await sleep(3000);
             seconds += 3;
 
-            const runResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apiKey}`);
+            // TASK 1: Cache Breaker - Append Timestamp
+            const runResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apiKey}&ts=${Date.now()}`);
             runData = await runResponse.json();
             status = runData.data.status;
 
@@ -108,12 +109,18 @@ export function useScraper() {
                     "includeUnfilteredResults": false
                 };
 
-                // Add Region Locks if filter is NOT disabled
+
+
+                // Task 2: Strict Indonesian Content Lock - Google Side
                 if (!disableRegionFilter) {
                     input["languageCode"] = "id";
                     input["countryCode"] = "id";
                     input["googleHost"] = "google.co.id";
                 }
+
+                // Task 3: Final Query Validation
+                console.log("[Validation] Target Keyword:", keyword);
+                console.log("[Validation] Final Payload:", JSON.stringify(input, null, 2));
 
                 // Final Query Log
                 console.log("FINAL QUERY:", input.queries);
@@ -122,8 +129,8 @@ export function useScraper() {
                 // Debug Log
                 console.log("Adding Google Scraper Task with Payload:", input);
 
-                // Start Google Scraper
-                const googleRunResponse = await fetch(`https://api.apify.com/v2/acts/apify~google-search-scraper/runs?token=${apiKey}`, {
+                // TASK 1: Cache Breaker - Append Timestamp for Start Run
+                const googleRunResponse = await fetch(`https://api.apify.com/v2/acts/apify~google-search-scraper/runs?token=${apiKey}&ts=${Date.now()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(input)
@@ -148,9 +155,9 @@ export function useScraper() {
                     setState(prev => ({ ...prev, progress: `Phase 1/3: Discovering videos... (${sec}s)` }));
                 });
 
-                // Fetch Google Results
+                // Fetch Google Results - Cache Breaker
                 const googleDatasetId = googleRunData.data.defaultDatasetId;
-                const googleItemsResponse = await fetch(`https://api.apify.com/v2/datasets/${googleDatasetId}/items?token=${apiKey}`);
+                const googleItemsResponse = await fetch(`https://api.apify.com/v2/datasets/${googleDatasetId}/items?token=${apiKey}&ts=${Date.now()}`);
                 const googleItems = await googleItemsResponse.json();
 
                 // Extract TikTok URLs
@@ -180,8 +187,8 @@ export function useScraper() {
             const stepPrefix = discoveryOptions ? "Phase 2/3" : "Phase 1/1";
             setState(prev => ({ ...prev, progress: `${stepPrefix}: Allocating Analysis Container (${targetUrls.length} videos)...` }));
 
-            // Start TikTok Scraper
-            const tiktokRunResponse = await fetch(`https://api.apify.com/v2/acts/clockworks~tiktok-comments-scraper/runs?token=${apiKey}`, {
+            // Start TikTok Scraper - Cache Breaker
+            const tiktokRunResponse = await fetch(`https://api.apify.com/v2/acts/clockworks~tiktok-comments-scraper/runs?token=${apiKey}&ts=${Date.now()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -213,16 +220,15 @@ export function useScraper() {
 
             // STEP 3: PROCESS RESULTS
             setState(prev => ({ ...prev, progress: discoveryOptions ? 'Phase 3/3: Finalizing Dataset...' : 'Finalizing Dataset...' }));
-            const itemsResponse = await fetch(`https://api.apify.com/v2/datasets/${defaultDatasetId}/items?token=${apiKey}`);
+            const itemsResponse = await fetch(`https://api.apify.com/v2/datasets/${defaultDatasetId}/items?token=${apiKey}&ts=${Date.now()}`);
             const items = await itemsResponse.json();
 
             // POST-SCRAPE VALIDATION
-            const indonesianStopWords = ["yang", "dan", "di", "ini", "ada", "ke", "dari", "untuk", "pada", "adalah", "aku", "kamu", "dia", "mereka", "kita", "bisa", "mau", "tidak", "ya", "nggak", "gak", "banget", "dong", "sih", "kok", "apa", "kenapa", "kapan", "dimana", "siapa", "bagaimana", "hal", "juga", "itu", "saya", "tapi", "akan", "sudah", "lebih", "ia", "oleh"];
-
             const isIndonesian = (text: string) => {
+                // Task 2: Strict Indonsian Content Lock - Frontend Filter
+                const stopWords = ['yang', 'dan', 'di', 'ini', 'itu', 'ada', 'bisa', 'dari', 'ke', 'buat'];
                 const lowerText = text.toLowerCase();
-                // Check if text contains at least one common Indonesian stop word
-                return indonesianStopWords.some(word => lowerText.includes(` ${word} `) || lowerText.startsWith(`${word} `) || lowerText.endsWith(` ${word}`) || lowerText === word);
+                return stopWords.some(word => lowerText.includes(` ${word} `) || lowerText.startsWith(`${word} `) || lowerText.endsWith(` ${word}`) || lowerText === word);
             };
 
             const mappedData: CommentData[] = items
@@ -237,11 +243,12 @@ export function useScraper() {
                     videoTitle: item.videoTitle || item.desc || "Unknown Video",
                     videoCover: item.videoCover || item.videoAuthorAvatar
                 }))
+
                 .filter((comment: CommentData) => {
                     // Filter 1: Language Validation (Strict Indonesian Check)
-                    // Skip if global mode (disableRegionFilter is true)
+                    // ALWAYS apply strict filter if discovery mode (unless explicitly global, but user requested Strict Lock)
                     if (discoveryOptions && !discoveryOptions.disableRegionFilter) {
-                        if (!isIndonesian(comment.text)) return false;
+                        return isIndonesian(comment.text);
                     }
 
                     // Filter 2: Date Validation (Double check strict range)
@@ -249,11 +256,14 @@ export function useScraper() {
                         const commentDate = new Date(comment.createTime * 1000);
                         const start = new Date(discoveryOptions.startDate);
                         const end = new Date(discoveryOptions.endDate);
-                        end.setHours(23, 59, 59); // Ensure end date covers the full day
+                        end.setHours(23, 59, 59);
                         return commentDate >= start && commentDate <= end;
                     }
                     return true;
                 });
+
+            // Task 3: Final Query Validation - Log Results
+            console.log(`[Validation] Total Items: ${items.length}, After Filter: ${mappedData.length}`);
 
             setState({
                 loading: false,
