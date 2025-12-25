@@ -5,9 +5,10 @@ import Papa from "papaparse"
 
 interface ResultsTableProps {
     data: CommentData[]
+    loading?: boolean
 }
 
-export function ResultsTable({ data }: ResultsTableProps) {
+export function ResultsTable({ data, loading = false }: ResultsTableProps) {
     const handleExport = () => {
         // Exclude metadata from CSV to keep it clean, or keep it if helpful
         // Let's keep it clean: remove metadata fields
@@ -22,6 +23,61 @@ export function ResultsTable({ data }: ResultsTableProps) {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+    }
+
+    // Show skeleton during loading
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                        <TableIcon className="text-tiktok-pink" size={20} />
+                        Raw Data Preview
+                    </h3>
+                </div>
+
+                <div className="glass rounded-xl overflow-hidden border border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-muted/50 text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
+                                <tr>
+                                    <th className="px-6 py-4">User</th>
+                                    <th className="px-6 py-4">Comment</th>
+                                    <th className="px-6 py-4 text-right">Likes</th>
+                                    <th className="px-6 py-4 text-right">Replies</th>
+                                    <th className="px-6 py-4 text-right">Date</th>
+                                    <th className="px-6 py-4">Link</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {[...Array(5)].map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td className="px-6 py-3">
+                                            <div className="h-4 bg-muted rounded w-24"></div>
+                                        </td>
+                                        <td className="px-6 py-3">
+                                            <div className="h-4 bg-muted rounded w-full"></div>
+                                        </td>
+                                        <td className="px-6 py-3 text-right">
+                                            <div className="h-4 bg-muted rounded w-12 ml-auto"></div>
+                                        </td>
+                                        <td className="px-6 py-3 text-right">
+                                            <div className="h-4 bg-muted rounded w-12 ml-auto"></div>
+                                        </td>
+                                        <td className="px-6 py-3 text-right">
+                                            <div className="h-4 bg-muted rounded w-20 ml-auto"></div>
+                                        </td>
+                                        <td className="px-6 py-3">
+                                            <div className="h-4 bg-muted rounded w-4"></div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     if (data.length === 0) return null

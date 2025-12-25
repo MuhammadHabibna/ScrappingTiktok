@@ -21,6 +21,7 @@ interface ScraperState {
     data: CommentData[];
     error: string | null;
     runId: string | null;
+    currentActiveQuery: string | null;
 }
 
 export function useScraper() {
@@ -31,6 +32,7 @@ export function useScraper() {
         data: [],
         error: null,
         runId: null,
+        currentActiveQuery: null,
     });
 
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -69,13 +71,19 @@ export function useScraper() {
             return;
         }
 
-        // TASK 1: Mandatory State Reset - Clear existing data immediately
+        // Task 1: Request-Key Validation - Generate unique query ID
+        const queryId = discoveryOptions
+            ? `${discoveryOptions.keyword}-${Date.now()}`
+            : `direct-${initialUrls[0]}-${Date.now()}`;
+
+        // Set active query and clear old data
         setState(prev => ({
             ...prev,
             loading: true,
             data: [],
             error: null,
-            progress: 'Starting...'
+            progress: 'Starting...',
+            currentActiveQuery: queryId
         }));
 
         let targetUrls = initialUrls;
@@ -94,7 +102,8 @@ export function useScraper() {
                     progress: `Searching Google for: ${keyword}...`,
                     data: [],
                     error: null,
-                    runId: null
+                    runId: null,
+                    currentActiveQuery: queryId
                 });
 
                 // Construct Input Payload
@@ -265,12 +274,22 @@ export function useScraper() {
             // Task 3: Final Query Validation - Log Results
             console.log(`[Validation] Total Items: ${items.length}, After Filter: ${mappedData.length}`);
 
-            setState({
-                loading: false,
-                progress: 'Analysis Complete.',
-                data: mappedData,
-                error: null,
-                runId
+            // Task 1: Validate query before setting results
+            setState(prev => {
+                // If query has changed, ignore this response
+                if (prev.currentActiveQuery !== queryId) {
+                    console.log('[Query Isolation] Ignoring stale response:', queryId);
+                    return prev;
+                }
+
+                return {
+                    loading: false,
+                    progress: 'Analysis Complete.',
+                    data: mappedData,
+                    error: null,
+                    runId,
+                    currentActiveQuery: queryId
+                };
             });
 
             // Add to history
@@ -285,12 +304,22 @@ export function useScraper() {
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
             console.error(err);
-            setState({
-                loading: false,
-                progress: '',
-                data: [],
-                error: errorMessage,
-                runId: null
+
+            // Validate query before setting error state
+            setState(prev => {
+                if (prev.currentActiveQuery !== queryId) {
+                    console.log('[Query Isolation] Ignoring stale error:', queryId);
+                    return prev;
+                }
+
+                return {
+                    loading: false,
+                    progress: '',
+                    data: [],
+                    error: errorMessage,
+                    runId: null,
+                    currentActiveQuery: queryId
+                };
             });
         }
     };

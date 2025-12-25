@@ -119,7 +119,7 @@ export default function Home() {
                     </section>
 
                     <StatsCard data={data} />
-                    <ResultsTable data={data} />
+                    <ResultsTable data={data} loading={loading} />
                 </div>
             )}
         </div>
